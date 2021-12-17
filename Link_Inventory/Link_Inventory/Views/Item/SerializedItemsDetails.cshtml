@@ -1,0 +1,247 @@
+﻿@model Link_Inventory.ViewModels.ItemsViewModel
+<head>
+    @section Scripts{
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+        <script>
+            $(function () {
+                $.validator.addMethod("prevent_double_entry", function (value, element) {
+                    if ($('#roomsToId').val() == 99 && $('#itemUser').val() == 109) {
+                        return false;
+                    }
+                    return true;
+                }, "* Nedozvoljen unos");
+                $("#SerializedItemRoomForm").validate({
+                    rules: {
+                        "roomsTo": {
+                            required: true,
+                            prevent_double_entry: true
+                            
+                        },
+                        "itemUser": {
+                            required: true,
+                            prevent_double_entry: true
+                        },
+                    },
+                    messages: {
+                        "roomsTo": {
+                            required: '* Odabrite prostoriju',
+                            prevent_double_entry: '* Nemoguca operacija'
+                        },
+                        "itemUser": {
+                            required: '* Odabrite korisnika',
+                            prevent_double_entry: '* Nemoguca operacija'
+                        },
+                    },
+                    errorPlacement: function (error, element) {
+                        error.css('color', 'red');
+                        error.insertAfter(element);
+                    },
+                    submitHandler: function (form) {
+                        $.ajax({
+                            type: "POST",
+                            url: "/Item/NewSerializedItemRoom",
+                            data: $(form).serialize(),
+                            error: function (xhr, status, error) {
+                            },
+                            success: function (response) {
+                                $("#Iditem").val(response)
+                                $("#iDAppUser").val(response)
+                                location.reload()
+
+                            }
+                        });
+
+                        return false;
+
+                    }
+                });
+            });
+
+
+
+        </script>
+    }
+
+</head>
+<form id="SerliaziedItemSummaryForm" asp-controller="Item" asp-action="UpdateSerialNumberFromDetailsPage" asp-route-id="@Model.SerializedItem.Id" method="post">
+    <input id="Iditem" type="hidden" asp-for="@Model.SerializedItem.Id" name="serializedItemId" />
+    <input id="iDAppUser" type="hidden" asp-for="@Model.ApplicationUserId" name="appUserId" />
+    <input id="currentRoomId" type="hidden" asp-for="@Model.CurrentRoom.Id" name="currentRoom" />
+    <div>
+        @if (Model.SerializedItem.SerialNumber == "Nedefinisan serijski broj")
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Naziv Artikla</th>
+                        <th>Model Artikla</th>
+                        <th>Dobavljač</th>
+                        <th>Broj Fakture</th>
+                        <th>Datum Kupovine</th>
+                        <th>Cena u RSD</th>
+                        <th>Serijski Broj</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>@Model.SerializedItem.Item.Name</td>
+                        <td>@Model.SerializedItem.Item.Model</td>
+                        <td>@Model.SerializedItem.InvoiceItem.Invoice.Supplier.Name</td>
+                        <td>@Model.SerializedItem.InvoiceItem.Invoice.InvoiceNumber</td>
+                        <td>@Model.SerializedItem.InvoiceItem.Invoice.IssueDate.ToString("dd-MM-yyyy")</td>
+                        <td>@Model.SerializedItem.InvoiceItem.PriceNoTax</td>
+                        <td>
+                            <input placeholder="Unesi serijski broj" name="serialNumber" />
+                        </td>
+                        <td><button type="submit" class="btn btn-primary">Potvrdi</button></td>
+
+                    </tr>
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Naziv Artikla</th>
+                        <th>Model Artikla</th>
+                        <th>Serijski Broj</th>
+                        <th>Dobavljač</th>
+                        <th>Broj Fakture</th>
+                        <th>Datum Kupovine</th>
+                        <th>Cena u RSD</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>@Model.SerializedItem.Item.Name</td>
+                        <td>@Model.SerializedItem.Item.Model</td>
+                        <td>@Model.SerializedItem.SerialNumber</td>
+                        <td>@Model.SerializedItem.InvoiceItem.Invoice.Supplier.Name</td>
+                        <td>@Model.SerializedItem.InvoiceItem.Invoice.InvoiceNumber</td>
+                        <td>@Model.SerializedItem.InvoiceItem.Invoice.IssueDate.ToString("dd-MM-yyyy")</td>
+                        <td>@Model.SerializedItem.InvoiceItem.PriceNoTax</td>
+
+                    </tr>
+                </tbody>
+            </table>
+        }
+    </div>
+</form>
+<form onsubmit="false" id="SerializedItemRoomForm">
+    <div>
+        <input id="Iditem" type="hidden" asp-for="@Model.SerializedItem.Id" name="serializedItemId" />
+        <input id="iDAppUser" type="hidden" asp-for="@Model.ApplicationUserId" name="appUserId" />
+        <input id="currentRoomId" type="hidden" asp-for="@Model.CurrentRoom.Id" name="currentRoom" />
+
+        <div class="form-group row">
+            <label asp-for="@Model.CurrentUser" class="col-sm-2 col-form-label">Trenutni korisnik artikla:</label>
+            <div class="col-sm-10">
+                @if (Model.CurrentUser.Name == "Korisnik nije određen")
+                {
+                    <input type="text" readonly class="form-control-plaintext" asp-for="@Model.CurrentUser" value="@Model.CurrentUser.Name">
+                }
+                else
+                {
+                    <input type="text" readonly class="form-control-plaintext" asp-for="@Model.CurrentUser" value="@Model.CurrentUser.Name @Model.CurrentUser.LastName">
+                }
+            </div>
+        </div>
+        <div class="form-group row">
+            <label asp-for="@Model.CurrentRoom" class="col-sm-2 col-form-label">Trenutna prostorija:</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" name="currentRoom" asp-for="@Model.CurrentRoom" value="@Model.CurrentRoom.Name">
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="form-group row">
+            @if (Model.CurrentRoom.Name == "Prostorija nije određena")
+            {
+                <label class="col-sm-3 col-form-label">Premesti u prostoriju:</label>
+                <div class="col-sm-10">
+                    <select class="w-25 h-100" id="roomsToId" name="roomsTo" asp-items="@(SelectList)ViewBag.roomsToSerializedItems;">
+                        <option value="">----</option>
+                    </select>
+                </div>
+            }
+            else
+            {
+                <label class="col-sm-3 col-form-label">Premesti u prostoriju:</label>
+                <div class="col-sm-10">
+                    <select class="w-25 h-100" id="roomsToId" name="roomsTo" asp-items="@(SelectList)ViewBag.roomsToSerializedItems;">
+                        <option value="">----</option>
+                        <option value="99">Trenutna prostorija</option>
+                    </select>
+                </div>
+            }
+
+        </div>
+        @if (Model.CurrentUser.Name == "Korisnik nije određen")
+        {
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Odaberi korisnika artikla:</label>
+                <div class="col-sm-10">
+                    <select class="w-25 h-100" id="itemUser" name="itemUser" asp-items="@(SelectList)ViewBag.allItemUsers;">
+                        <option value="">----</option>
+                    </select>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Odaberi korisnika artikla:</label>
+                <div class="col-sm-10">
+                    <select class="w-25 h-100" id="itemUser" name="itemUser" asp-items="@(SelectList)ViewBag.allItemUsers;">
+                        <option value="">----</option>
+                        <option value="109">Trenutni korisnik</option>
+                    </select>
+                </div>
+            </div>
+        }
+
+        <input type="submit" value="Rasporedi" class=" btn btn-primary" id="btnSubmit" />
+    </div>
+    <br />
+    <div>
+        @if (Model.AllItemsRooms.Count != 0)
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Opis promene:</th>
+                        <th>Datum:</th>
+                        <th>Promenu izvršio:</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var x in Model.AllItemsRooms)
+                    {
+                    <tr>
+                        @if (x.RoomFrom.Name == "Prostorija nije određena")
+                        {
+                        <td>Artikal u prostoriji: @x.Room.Name. Korisnik: @x.ItemUser.Name @x.ItemUser.LastName</td>
+                        }
+                        else if (x.RoomId != x.RoomFromId)
+                        {
+                            <td> Artikal @x.SerializedItem.Item.Name prebačen iz prostorije: @x.RoomFrom.Name. Nova prostorija: @x.Room.Name. Korisnik: @x.ItemUser.Name @x.ItemUser.LastName</td>
+                        }
+                        else
+                        {
+                            <td>Artikal u prostoriji @x.Room.Name. Novi korisnik: @x.ItemUser.Name @x.ItemUser.LastName</td>
+                        }
+                        <td>@x.DateOfChange.ToString("dd-MM-yyyy")</td>
+                        <td>@x.ApplicationUser.UserName</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+
+
+        }
+    </div>
+</form>

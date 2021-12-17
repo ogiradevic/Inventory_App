@@ -1,0 +1,45 @@
+﻿@model Link_Inventory.ViewModels.ItemsViewModel
+
+<form asp-controller="Item" asp-action="AllSerializedItems">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Naziv</th>
+                <th scope="col">Model</th>
+                <th scope="col">Serijski Broj</th>
+
+            </tr>
+        </thead>
+        <tbody id="allNonSerializedItemsTable">
+            @foreach (var serializedItem in Model.AllSerilizedItems)
+            {
+            <tr>
+                <td>@serializedItem.Item.Name</td>
+                <td>@serializedItem.Item.Model</td>
+                @if (serializedItem.SerialNumber == "Nedefinisan serijski broj")
+                {
+                    <td><input placeholder="Unesi serijski broj" name="serialNumber" /></td>
+                    <td><button class="btn btn-primary" asp-controller="Item" asp-action="UpdateSerialNumber">Potvrdi</button></td>
+                    <td>
+                        <button class="btn btn-primary" asp-controller="Item" , asp-action="SerializedItemsDetails" asp-route-id="@serializedItem.Id">Detaljnije</button>
+                    </td>
+                    <td style="display:none">
+                        <input type="hidden" name="serializedItemId" asp-for="@serializedItem.Id" />
+                    </td>
+
+                }
+                else
+                {
+                    <td>@serializedItem.SerialNumber</td>
+                    <td>
+                        <button class="btn btn-primary" asp-controller="Item" , asp-action="SerializedItemsDetails" asp-route-id="@serializedItem.Id">Detaljnije</button>
+                    </td>
+                }
+
+            </tr>
+
+            }
+
+        </tbody>
+    </table>
+</form>

@@ -1,0 +1,205 @@
+﻿@model Link_Inventory.ViewModels.ItemsViewModel
+<head>
+    @section Scripts{
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+        <script>
+            $(function () {
+                $.validator.addMethod("rooms_not_thesame", function (value, element) {
+                    return $('#roomsFromId').val() != $('#roomsToId').val()
+                }, "* Prostorije ne mogu biti iste");
+                $.validator.addMethod("amount_must_be_greater_than0", function (value, element) {
+                    return $('#RoomAmount').val() > 0
+                }, "* Kolicina mora biti veca od nule");
+                $.validator.addMethod("amount_mustNOT_beGreatet_thanTotalAmount", function (value, element) {
+                    return $('#RoomAmount').val() < $('#totalAmount').val()
+                }, "* Uneta količina je veća od dostupne");
+                $("#nonSerializedItemRoomForm").validate({
+                    rules: {
+                        "roomsFrom": {
+                            required: true,
+                            rooms_not_thesame: true
+                        },
+                        "roomsTo": {
+                            required: true,
+                            rooms_not_thesame: true
+                        },
+                        "AmountPerRoom": {
+                            required: true,
+                            amount_must_be_greater_than0: true,
+                            amount_mustNOT_beGreatet_thanTotalAmount: true,
+                       
+
+                        }
+                    },
+                    messages: {
+                        "roomsFrom": {
+                            rooms_not_thesame: '* Iste prostorije',
+                            required: '* Odabrite prostoriju'
+                        },
+                        "roomsTo": '* Odaberite prostoriju',
+                        "roomsTo": {
+                            rooms_not_thesame: '* Iste prostorije',
+                            required: '* Odabrite prostoriju'
+                        },
+                        "AmountPerRoom": {
+                          
+                            amount_must_be_greater_than0: '* Kolicina mora biti veca od nule ',
+                            amount_mustNOT_beGreatet_thanTotalAmount: '* Količina ne moze biti veca od ukupne kolicine ',
+                            required: '* Unesite kolicinu',
+                      
+                        }
+                    },
+                    errorPlacement: function (error, element) {
+                        error.css('color', 'red');
+                        error.insertAfter(element);
+                    },
+                    submitHandler: function (form) {
+                        $.ajax({
+                            type: "POST",
+                            url: "/Item/NewItemRoom",
+                            data: $(form).serialize(),
+                            error: function (xhr, status, error) {
+                            },
+                            success: function (response) {
+                                $("#Iditem").val(response)
+                                $("#iDAppUser").val(response)
+ 
+
+                            }
+                        });
+
+                        return false;
+
+                    }
+                });
+            });
+
+
+
+        </script>
+    }
+</head> 
+<form onsubmit="false" id="nonSerializedItemRoomForm">
+    <div>
+        <input id="Iditem" type="hidden" asp-for="@Model.Item.Id" name="itemId" />
+        <input id="iDAppUser" type="hidden" asp-for="@Model.ApplicationUserId" name="appUserId" />
+        <div class="form-group row">
+            <label asp-for="@Model.Item.Name" class="col-sm-2 col-form-label">Naziv Artikla:</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" asp-for="@Model.Item.Name" value="@Model.Item.Name">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label asp-for="@Model.Item.Model" class="col-sm-2 col-form-label">Naziv Artikla:</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" asp-for="@Model.Item.Model" value="@Model.Item.Model">
+            </div>
+        </div>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Broj Fakture</th>
+                    <th>Dobavljač</th>
+                    <th>Datum Kupovine</th>
+                    <th>Opis kupovine</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (var invItem in Model.AllInvoiceItemsByItemId)
+                {
+                    <tr>
+                        <td>@invItem.Invoice.InvoiceNumber</td>
+                        <td>@invItem.Invoice.Supplier.Name</td>
+                        <td>@invItem.Invoice.IssueDate.ToString("dd-MM-yyyy")</td>
+                        <td>@invItem.Description</td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+        <div class="form-group row">
+            <label asp-for="@Model.Item.Amount" class="col-sm-2 col-form-label">Ukupna količina:</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" asp-for="@Model.Item.Amount" id="totalAmount" value="@Model.Item.Amount">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label asp-for="@Model.Undefined" class="col-sm-2 col-form-label">Neraspoređeno:</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" asp-for="@Model.Undefined" value="@Model.Undefined">
+            </div>
+        </div>
+        <div class="form-group row" style="border:solid">
+            @foreach (var arI in Model.SumItemsRooms)
+            {
+
+                <label id="selectedRoom" class="col-sm-2 col-form-label">@arI.Key:</label>
+                <div class="col-sm-10">
+                    <input id="roomAmoutnewValue" ng- type="text" readonly class="form-control-plaintext" value="@arI.Value">
+                </div>
+                <br />
+
+
+            }
+        </div>
+    </div>
+        <div>
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Iz prostorije:</label>
+                <div class="col-sm-10">
+                    <select class="w-25 h-100" id="roomsFromId" name="roomsFrom" asp-items="@(SelectList)ViewBag.RoomsFrom;">
+                        <option value="">----</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">U prostoriju:</label>
+                <div class="col-sm-10">
+                    <select class="w-25 h-100" id="roomsToId" name="roomsTo" asp-items="@(SelectList)ViewBag.RoomsTo;">
+                        <option value="">----</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Prebaci sledeću količinu artikala:</label>
+                <div class="col-sm-10">
+                    <input id="RoomAmount" class="w-25 h-100" value="" name="AmountPerRoom" asp-for="@Model.AmountPerRoom">
+                </div>
+            </div>
+            <input type="hidden" value="@Model.Check" />
+            <input type="submit" value="Rasporedi" class=" btn btn-primary" id="btnSubmit" />
+        </div>
+        <br />
+        <div>
+            @if (Model.AllNonSerializedItemsRoomsById.Count != 0)
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Iz prostorije:</th>
+                            <th>U prostoriju:</th>
+                            <th>Količina:</th>
+                            <th>Datum:</th>
+                            <th>Promenu izvršio:</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var x in Model.AllNonSerializedItemsRooms)
+                        {
+                            <tr>
+                                <td>@x.RoomFrom.Name</td>
+                                <td>@x.Room.Name</td>
+                                <td>@x.AmountPerRoom</td>
+                                <td>@x.DateOfChange.ToString("dd-MM-yyyy")</td>
+                                <td>@x.ApplicationUser.UserName</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+
+            }
+        </div>
+</form>

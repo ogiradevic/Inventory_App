@@ -1,0 +1,27 @@
+﻿@model Link_Inventory.ViewModels.ItemsViewModel
+
+<form asp-controller="Item" asp-action="AllNonSerializedItems">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Naziv</th>
+                <th scope="col">Model</th>
+
+            </tr>
+        </thead>
+        <tbody id="allNonSerializedItemsTable"> 
+            @foreach (var item in Model.AllNonSerilizedItems)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Model</td>
+                    <td>
+                        <button class="btn btn-primary" asp-controller="Item" , asp-action="Details"  asp-route-id="@item.Id">Detaljnije</button>
+                    </td>
+                </tr>
+
+            }
+
+        </tbody>
+    </table>
+</form>

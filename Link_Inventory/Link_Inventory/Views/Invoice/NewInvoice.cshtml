@@ -1,0 +1,206 @@
+﻿@model Link_Inventory.ViewModels.InvoiceItemsViewModel
+
+<head>
+    @section Scripts {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+        <script>
+            $(document).ready(function () {
+                $("#itemForm").hide();
+                $("#invoiceSummary").hide();
+                $("#finish").hide();
+            });
+
+            $(function () {
+                $("#invoiceForm").validate({
+                    rules: {
+                        "Invoice.InvoiceNumber": 'required',
+                        "Invoice.IssueDate": 'required',
+                        "Invoice.DueDate": 'required',
+                        "supplierId": 'required',
+                        "companyId": 'required',
+                    },
+                    messages: {
+                        "Invoice.InvoiceNumber": '* Obavezno polje',
+                        "Invoice.IssueDate": '* Obavezno polje',
+                        "Invoice.DueDate": '* Obavezno polje',
+                        "supplierId": '* Odaberite dobavljača',
+                        "companyId": '* Odaberite preduzeće',
+                    },
+                    errorPlacement: function (error, element) {
+                        error.css('color', 'red');
+                        error.insertAfter(element);
+                    },
+                    submitHandler: function (form) {
+                        /*$("#invoiceNumber").attr("disabled", true);
+                        $("#issueDate").attr("disabled", true);
+                        $("#dueDate").attr("disabled", true);
+                        $("#supplier").attr("disabled", true);
+                        $("#company").attr("disabled", true);*/
+                        $("#showNewButton").attr("disabled", true);
+                        $("#itemForm").show();
+                        $("#invoiceSummary").show();
+                        $.ajax({
+                            type: "POST",
+                            url: $(form).attr('action'),
+                            data: $(form).serialize(),
+                            error: function (xhr, status, error) {
+                            },
+                            success: function (response) {
+                                $("#IdFakture").val(response)
+
+                            }
+                        });
+
+                        return false;
+
+                    }
+                });
+            });
+
+            function deleteItem(invoiceItemId,btnClicked) {
+                $.ajax({
+                    type: "GET",
+                    url: "/Invoice/NewInvoice2/" + invoiceItemId,
+                    error: function (xhr, status, error) {
+                    },
+                    success: function (response) {
+
+                        btnClicked.parentNode.parentNode.parentNode.removeChild(btnClicked.parentNode.parentNode);
+                        console.debug(response);
+                    }
+                });
+
+                return false;
+            }
+
+            $(function () {
+                $("#itemForm").validate({
+                    rules: {
+                        "itemId": 'required',
+                        "Amount": 'required',
+                        "Price": 'required',
+                    },
+                    messages: {
+                        "itemId": '* Odaberite artikal',
+                        "Amount": '* Obavezno polje',
+                        "Price": '* Obavezno polje',
+                    },
+                    errorPlacement: function (error, element) {
+                        error.css('color', 'red');
+                        error.insertAfter(element);
+                    },
+                    submitHandler: function (form) {
+                        $.ajax({
+                            type: "POST",
+                            url: "/Invoice/NewInvoice1",
+                            data: $(form).serialize(),
+                            error: function (xhr, status, error) {
+                            },
+                            success: function (response) {
+
+                                console.debug(response.invoiceItem.id);
+
+                                var tbl = document.getElementById("invoiceSummary");
+                                var row = tbl.insertRow();
+                                var cell1 = row.insertCell();
+                                var cell2 = row.insertCell();
+                                var cell3 = row.insertCell();
+                                var cell4 = row.insertCell();
+
+                                var cell1Value = document.getElementById("idItem");
+                                var cell1Content = cell1Value.options[cell1Value.selectedIndex].text;
+                                cell1.innerHTML = cell1Content;
+
+                                var cell2Value = document.getElementById("amountValue");
+                                var cell2Content = cell2Value.value;
+                                cell2.innerHTML = cell2Content;
+
+
+                                var cell3Value = document.getElementById("priceValue");
+                                var cell3Content = cell3Value.value;
+                                cell3.innerHTML = cell3Content;
+
+                         
+                                cell4.innerHTML = "<input type='button' value='Ukloni Stavku' class='btn btn-primary' onclick='deleteItem(" + response.invoiceItem.id+", this)'>";
+              
+
+                                $("#finish").show();
+
+                                $('#itemForm').trigger("reset");
+
+
+                            }
+                        });
+
+                        return false;
+
+                    }
+                });
+            });
+
+
+        </script>
+    }
+</head>
+<body>
+    <form id="invoiceForm" onsubmit="false">
+        <div class="form-group">
+            <label asp-for="@Model.Invoice.InvoiceNumber">Broj Fakture:</label>
+            <input asp-for="@Model.Invoice.InvoiceNumber" class="form-control" id="invoiceNumber">
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model.Invoice.IssueDate">Datum Izdavanja:</label>
+            <input type="date" asp-for="@Model.Invoice.IssueDate" class="form-control" id="issueDate">
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model.Invoice.DueDate">Datum Valute:</label>
+            <input type="date" asp-for="@Model.Invoice.DueDate" class="form-control" id="dueDate">
+        </div>
+        <div class="form-group">
+            <label>Dobavljač:</label>
+            <select name="supplierId" asp-items="@(SelectList)ViewBag.SupplierList;" class="form-control" id="supplier">
+                <option value="">------</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Preduzeće:</label>
+            <select name="companyId" asp-items="@(SelectList)ViewBag.CompaniesList;" class="form-control" id="company">
+                <option value="">------</option>
+            </select>
+        </div>
+        <input type="submit" value="Dodaj Fakturu" class=" btn btn-primary" id="showNewButton" />
+    </form>
+    <br />
+    <form id="itemForm" onsubmit="false">
+        <div class="form-group">
+            <select id="idItem" name="itemId" asp-items="@(SelectList)ViewBag.ItemsList;" class="form-control">
+                <option value="">----</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model.Amount">Količina:</label>
+            <input value="" asp-for="@Model.Amount" class="form-control" id="amountValue">
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model.Price">Cena po komadu:</label>
+            <input value="" asp-for="@Model.Price" class="form-control" id="priceValue">
+        </div>
+        <input id="IdFakture" type="hidden" asp-for="@Model.InvoiceId" />
+        <div style="display:flex">
+            <input id="submit" type="submit" value="Dodaj Artikal Na Fakturu" class=" btn btn-primary" />
+        </div>
+    </form>
+    <br />
+    <div>
+        <table class="table table-striped" id="invoiceSummary">
+            <tr>
+                <td>Artikal</td>
+                <td>Količina</td>
+                <td>Cena po komadu u RSD</td>
+                <td></td>
+            </tr>
+        </table>
+        <input id="finish" type="submit" value="Pregled fakture" onclick='document.location = "InvoiceSummary?invoiceId="+document.getElementById("IdFakture").value' class=" btn btn-primary" />
+    </div>
+</body>
+

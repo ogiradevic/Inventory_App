@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31515.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Link_Inventory", "Link_Inventory\Link_Inventory.csproj", "{6FF67DB7-0616-42E4-B42D-633F27427E7F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6FF67DB7-0616-42E4-B42D-633F27427E7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FF67DB7-0616-42E4-B42D-633F27427E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FF67DB7-0616-42E4-B42D-633F27427E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FF67DB7-0616-42E4-B42D-633F27427E7F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EB368661-5279-4509-A5D7-67D68CDD8AE9}
+	EndGlobalSection
+EndGlobal
